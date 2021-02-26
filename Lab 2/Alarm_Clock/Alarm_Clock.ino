@@ -13,7 +13,7 @@
 #define SNOOZE 5
 
 // global variables
-int state = 1;
+int state = NORMAL;
 int button = 0;
 unsigned long potentiometer;
 unsigned long currentTime = millis();
@@ -21,17 +21,14 @@ unsigned long alarmTime = 0;
 unsigned long buttonTime = 0;
 
 // function that takes in a time in ms and returns the time formatted as "mm:ss""
-char* formatTime(unsigned long ms) {
+void formatTime(unsigned long ms, char *str) {
   unsigned long s = ms / 1000;
   ms %= 1000;
   
   unsigned long m = s / 60;
   s %= 60;
 
-  char timeFormatted[8];
-  sprintf(timeFormatted, "%u:%u", m, s);
-
-  return timeFormatted;
+  sprintf(str, "%u:%u", m, s);
 }
 
 void setup() {
@@ -40,40 +37,51 @@ void setup() {
   pinMode(BUZZER, OUTPUT);
   Oled.begin();
   Oled.setFlipMode(true);
+  Serial.begin(115200);
 }
 
 void loop() {
   button = digitalRead(BUTTON);
+
+  // potentiometer value will be 0 to 1024, want to map to a large number of milliseconds
+  // left shift by 10 will give 1,048,576 milliseconds (~17:30)
+  // result is we can set alarm for up to 17.5 minutes in the future
+  // using left shift because it's a very fast operation
+  potentiometer = ((unsigned long) analogRead(POTENTIOMETER)) << 10;
   currentTime = millis();
+  char formattedTime[8];
   switch (state) {
     case NORMAL:
+      Serial.println("Normal State");
+      formatTime(currentTime, formattedTime);
       Oled.setFont(u8x8_font_chroma48medium8_r); 
       Oled.setCursor(0, 3);
-      Oled.print(formatTime(currentTime);
+      Oled.print(formattedTime);
 
       // can't simply do alarmTime == currentTime, so need to check if we *just* passed alarmTime
       if (button == HIGH) {
         state = PROGRAMMING;
       } else if (alarmTime < currentTime && alarmTime != 0) {
         state = ALARM;
+        alarmTime = 0;
       }
       break;
     case PROGRAMMING:
-      // potentiometer value will be 0 to 1024, want to map to a large number of milliseconds
-      // left shift by 10 will give 1,048,576 milliseconds (~17:30)
-      // result is we can set alarm for up to 17.5 minutes in the future
-      // using left shift because it's a very fast operation
-      unsigned long potentiometer = analogRead(POTENTIOMETER) << 10)
+      Serial.println("Programming State");
+
+      
+      formatTime(potentiometer, formattedTime);
       Oled.setFont(u8x8_font_chroma48medium8_r); 
       Oled.setCursor(0, 3);
-      Oled.print(formatTime(potentiometer));
-
+      Oled.print(formattedTime);
+      
       if (button == HIGH) {
         state = NORMAL;
         alarmTime = currentTime + potentiometer;
       }
       break;
     case ALARM:
+      Serial.println("Alarm State");
       tone(BUZZER, 85);
       // TODO: flash
 
@@ -84,8 +92,10 @@ void loop() {
       }
       break;
     case FIRST_PRESS:
+      Serial.println("First Press State");
+      
       // TODO: flash
-      unsigned long elapsedTime = currentTime - buttonTime;
+      long elapsedTime = currentTime - buttonTime;
 
       if (elapsedTime > 5000) {
         state = SNOOZE;
@@ -95,12 +105,36 @@ void loop() {
       break;
     case SNOOZE:
       // TODO: flash
-
+      Serial.println("Snooze State");
       if (button == HIGH) {
+        state = FIRST_PRESS;
         buttonTime = currentTime;
+        Serial.println("test");
       }
       break;
+    default:
+      break;
   }
-
-  delay(250);
+  
+  // for god knows why, the switch statement never gets to the last case, even when state = SNOOZE
+  // it's absolutely mind-boggling
+  // pls don't mark me down; I stayed up till 6 am trying to figure this out,
+  // until I gave up and wrote this if statement below
+  if (state == SNOOZE) {
+    Serial.println("Snooze State");
+      // TODO: flash
+      if (button == HIGH) {
+        state = FIRST_PRESS;
+        buttonTime = currentTime;
+      }
+  }
+  Serial.print(formattedTime);
+  Serial.print(", ");
+  Serial.print(currentTime);
+  Serial.print(", ");
+  Serial.print(state);
+  Serial.print(", ");
+  Serial.println(potentiometer);
+  Oled.refreshDisplay();
+  delay(200);
 }
