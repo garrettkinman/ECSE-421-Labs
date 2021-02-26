@@ -15,6 +15,7 @@
 // global variables
 int state = 1;
 int button = 0;
+unsigned long potentiometer;
 unsigned long currentTime = millis();
 unsigned long alarmTime = 0;
 unsigned long buttonTime = 0;
@@ -46,19 +47,60 @@ void loop() {
   currentTime = millis();
   switch (state) {
     case NORMAL:
+      Oled.setFont(u8x8_font_chroma48medium8_r); 
+      Oled.setCursor(0, 3);
       Oled.print(formatTime(currentTime);
+
+      // can't simply do alarmTime == currentTime, so need to check if we *just* passed alarmTime
+      if (button == HIGH) {
+        state = PROGRAMMING;
+      } else if (alarmTime < currentTime && alarmTime != 0) {
+        state = ALARM;
+      }
+      break;
     case PROGRAMMING:
+      // potentiometer value will be 0 to 1024, want to map to a large number of milliseconds
+      // left shift by 10 will give 1,048,576 milliseconds (~17:30)
+      // result is we can set alarm for up to 17.5 minutes in the future
+      // using left shift because it's a very fast operation
+      unsigned long potentiometer = analogRead(POTENTIOMETER) << 10)
+      Oled.setFont(u8x8_font_chroma48medium8_r); 
+      Oled.setCursor(0, 3);
+      Oled.print(formatTime(potentiometer));
 
+      if (button == HIGH) {
+        state = NORMAL;
+        alarmTime = currentTime + potentiometer;
+      }
+      break;
     case ALARM:
+      tone(BUZZER, 85);
+      // TODO: flash
 
+      if (button == HIGH) {
+        state = FIRST_PRESS;
+        buttonTime = currentTime;
+        noTone(BUZZER);
+      }
+      break;
     case FIRST_PRESS:
+      // TODO: flash
+      unsigned long elapsedTime = currentTime - buttonTime;
 
+      if (elapsedTime > 5000) {
+        state = SNOOZE;
+      } else if (button == HIGH) {
+        state = NORMAL;
+      }
+      break;
     case SNOOZE:
-    
+      // TODO: flash
+
+      if (button == HIGH) {
+        buttonTime = currentTime;
+      }
+      break;
   }
-  Oled.setFont(u8x8_font_chroma48medium8_r); 
-  Oled.setCursor(0, 3);
-  Oled.print("Value: ");
-  Oled.print(random_value);
+
   delay(250);
 }
