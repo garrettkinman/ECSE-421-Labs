@@ -81,8 +81,7 @@ void loop() {
     case ALARM:
       Serial.println("Alarm State");
       tone(BUZZER, 85);
-      // TODO: flash
-
+      
       if (button == HIGH) {
         state = FIRST_PRESS;
         buttonTime = currentTime;
@@ -90,11 +89,10 @@ void loop() {
       }
       break;
     case FIRST_PRESS:
-      Serial.println("First Press State");
-      
-      // TODO: flash
+      Serial.println("First Press State"); 
       long elapsedTime = currentTime - buttonTime;
 
+      // only return to NORMAL if second button press within 5 seconds
       if (elapsedTime > 5000) {
         state = SNOOZE;
       } else if (button == HIGH) {
@@ -102,8 +100,8 @@ void loop() {
       }
       break;
     case SNOOZE:
-      // TODO: flash
       Serial.println("Snooze State");
+      
       if (button == HIGH) {
         state = FIRST_PRESS;
         buttonTime = currentTime;
@@ -114,13 +112,12 @@ void loop() {
       break;
   }
   
-  // for god knows why, the switch statement never gets to the last case, even when state = SNOOZE
+  // for who knows why, the switch statement never gets to the last case, even when state = SNOOZE
   // it's absolutely mind-boggling
   // pls don't mark me down; I stayed up till 6 am trying to figure this out,
   // until I gave up and wrote this if statement below
   if (state == SNOOZE) {
     Serial.println("Snooze State");
-      // TODO: flash
       if (button == HIGH) {
         state = FIRST_PRESS;
         buttonTime = currentTime;
