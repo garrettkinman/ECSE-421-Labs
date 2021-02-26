@@ -13,13 +13,24 @@
 #define SNOOZE 5
 
 // global variables
+int state = 1;
 int button = 0;
 unsigned long currentTime = millis();
 unsigned long alarmTime = 0;
 unsigned long buttonTime = 0;
 
+// function that takes in a time in ms and returns the time formatted as "mm:ss""
 char* formatTime(unsigned long ms) {
-  // TODO
+  unsigned long s = ms / 1000;
+  ms %= 1000;
+  
+  unsigned long m = s / 60;
+  s %= 60;
+
+  char timeFormatted[8];
+  sprintf(timeFormatted, "%d:%d", m, s);
+
+  return timeFormatted;
 }
 
 void setup() {
@@ -33,7 +44,18 @@ void setup() {
 void loop() {
   button = digitalRead(BUTTON);
   currentTime = millis();
+  switch (state) {
+    case NORMAL:
+      Oled.print(random_value);
+    case PROGRAMMING:
 
+    case ALARM:
+
+    case FIRST_PRESS:
+
+    case SNOOZE:
+    
+  }
   Oled.setFont(u8x8_font_chroma48medium8_r); 
   Oled.setCursor(0, 3);
   Oled.print("Value: ");
