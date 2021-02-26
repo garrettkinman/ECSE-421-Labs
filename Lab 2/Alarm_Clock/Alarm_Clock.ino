@@ -28,7 +28,7 @@ char* formatTime(unsigned long ms) {
   s %= 60;
 
   char timeFormatted[8];
-  sprintf(timeFormatted, "%d:%d", m, s);
+  sprintf(timeFormatted, "%u:%u", m, s);
 
   return timeFormatted;
 }
@@ -46,7 +46,7 @@ void loop() {
   currentTime = millis();
   switch (state) {
     case NORMAL:
-      Oled.print(random_value);
+      Oled.print(formatTime(currentTime);
     case PROGRAMMING:
 
     case ALARM:
