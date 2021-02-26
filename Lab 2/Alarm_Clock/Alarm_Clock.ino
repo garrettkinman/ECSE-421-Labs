@@ -22,13 +22,9 @@ unsigned long buttonTime = 0;
 
 // function that takes in a time in ms and returns the time formatted as "mm:ss""
 void formatTime(unsigned long ms, char *str) {
-  unsigned long s = ms / 1000;
-  ms %= 1000;
-  
-  unsigned long m = s / 60;
-  s %= 60;
-
-  sprintf(str, "%u:%u", m, s);
+  unsigned long m = ms / 60000;
+  unsigned long s = (ms - (60000 * m)) / 1000;
+  sprintf(str, "%.2lu:%.2lu", m, s);
 }
 
 void setup() {
@@ -37,6 +33,8 @@ void setup() {
   pinMode(BUZZER, OUTPUT);
   Oled.begin();
   Oled.setFlipMode(true);
+  
+  // for debug purposes
   Serial.begin(115200);
 }
 
@@ -44,12 +42,14 @@ void loop() {
   button = digitalRead(BUTTON);
 
   // potentiometer value will be 0 to 1024, want to map to a large number of milliseconds
-  // left shift by 10 will give 1,048,576 milliseconds (~17:30)
+  // left shift by 9 will give 524,288 milliseconds (~8:30)
   // result is we can set alarm for up to 17.5 minutes in the future
   // using left shift because it's a very fast operation
-  potentiometer = ((unsigned long) analogRead(POTENTIOMETER)) << 10;
+  potentiometer = ((unsigned long) analogRead(POTENTIOMETER)) << 9;
+  
   currentTime = millis();
-  char formattedTime[8];
+  char formattedTime[16];
+  
   switch (state) {
     case NORMAL:
       Serial.println("Normal State");
@@ -68,8 +68,6 @@ void loop() {
       break;
     case PROGRAMMING:
       Serial.println("Programming State");
-
-      
       formatTime(potentiometer, formattedTime);
       Oled.setFont(u8x8_font_chroma48medium8_r); 
       Oled.setCursor(0, 3);
