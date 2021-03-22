@@ -6,7 +6,8 @@ volatile byte state = LOW;
 
 void setup() {
   // initialize pins for IO
-  pinMode(LED, OUTPUT);
+  // set LED as OUTPUT
+  DDRD = B01000000;
 
   // setup timer
   cli(); // disable interrupts
@@ -27,5 +28,14 @@ void loop() {
 ISR(TIMER1_COMPA_vect) {
   // toggle on/off at every timer interrupt
   state = !state;
-  digitalWrite(LED, state);
+  switch (state) {
+    case LOW:
+      // set LED to LOW
+      PORTD = B00000000;
+      break;
+    case HIGH:
+      // set LED to HIGH
+      PORTD = B01000000;
+      break;
+  }
 }
