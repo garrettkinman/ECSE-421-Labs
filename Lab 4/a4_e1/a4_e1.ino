@@ -58,8 +58,8 @@ void buzzTask(void *pvParameters) {
     // turn on for 100 ms
     // then turn off for a second
     // vTaskDelay(...) hands control back over to the RTOS so other tasks can run
+    // mutex is here to protect serial port
     tone(BUZZER, 85);
-    vTaskDelay(1);
     xSemaphoreTake(serialMutex, portMAX_DELAY);
     Serial.println("'buzz buzz buzz' -a bee, probably");
     xSemaphoreGive(serialMutex);
@@ -80,8 +80,8 @@ void ledTask(void *pvParameters) {
     // turn on for half a second
     // then turn off for half a second
     // vTaskDelay(...) hands control back over to the RTOS so other tasks can run
+    // mutex is here to protect serial port
     digitalWrite(LED, HIGH);
-    vTaskDelay(1);
     xSemaphoreTake(serialMutex, portMAX_DELAY);
     Serial.println("THIS LED IS ON FIIIIIIIIRE");
     xSemaphoreGive(serialMutex);
@@ -103,11 +103,11 @@ void messageTask(void *pvParameters) {
     // display for 2 seconds
     // then remain clear for 2 seconds
     // vTaskDelay(...) hands control back over to the RTOS so other tasks can run
+    // mutex is here to protect serial port
     Oled.setFont(u8x8_font_chroma48medium8_r); 
     Oled.setCursor(0, 33);
     Oled.print("Hello, world!"); 
     Oled.refreshDisplay();
-    vTaskDelay(1);
     xSemaphoreTake(serialMutex, portMAX_DELAY);
     Serial.println("'Hello, world!' is your first program, but is 'Goodbye, cruel world!' your last?");
     xSemaphoreGive(serialMutex);
