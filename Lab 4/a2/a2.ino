@@ -8,6 +8,8 @@ void setup() {
   Serial.begin(9600);
   pinMode(BUZZER, OUTPUT);
   pinMode(LED, OUTPUT);
+  Oled.begin();
+  Oled.setFlipMode(true);
 }
 
 void buzzTask() {
@@ -27,7 +29,11 @@ void ledTask() {
 }
 
 void messageTask() {
-  // TODO
+  Oled.setFont(u8x8_font_chroma48medium8_r); 
+  Oled.setCursor(0, 33);
+  Oled.print("Hello, world!"); 
+  Oled.refreshDisplay();
+  delay(2000);
 }
 
 void loop() {
