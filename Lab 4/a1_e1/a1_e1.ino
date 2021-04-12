@@ -9,6 +9,7 @@ void setup() {
 }
 
 void ledTask() {
+  // turn on for 500 ms, then off for 500 ms
   digitalWrite(LED, HIGH);
   delay(500);
   digitalWrite(LED, LOW);
@@ -16,6 +17,7 @@ void ledTask() {
 }
 
 void loop() {
+  // time the loop and print results to terminal
   loopTimer.check(Serial);
   ledTask();
 }
