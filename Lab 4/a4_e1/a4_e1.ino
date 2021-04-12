@@ -1,6 +1,7 @@
 #include <Arduino_FreeRTOS.h>
 #include "Arduino_SensorKit.h"
 #include "loopTimer.h"
+#include <semphr.h>
 
 #define BUZZER 5
 #define LED 6
@@ -10,8 +11,15 @@ void buzzTask(void *pvParameters);
 void ledTask(void *pvParameters);
 void messageTask(void *pvParameters);
 
+// declare global mutex for the serial port
+SemaphoreHandle_t serialMutex;
+
 void setup() {
   Serial.begin(9600);
+
+  // create a mutex for the serial port
+  serialMutex = xSemaphoreCreateMutex();
+  if (serialMutex == NULL) Serial.println("Mutex cannot be created!");
   
   // construct tasks to run concurrently
   // loopTimer seems to take up too much memory, hence its absence
@@ -51,6 +59,10 @@ void buzzTask(void *pvParameters) {
     // then turn off for a second
     // vTaskDelay(...) hands control back over to the RTOS so other tasks can run
     tone(BUZZER, 85);
+    vTaskDelay(1);
+    xSemaphoreTake(serialMutex, portMAX_DELAY);
+    Serial.println("'buzz buzz buzz' -a bee, probably");
+    xSemaphoreGive(serialMutex);
     vTaskDelay(100 / portTICK_PERIOD_MS);
     noTone(BUZZER);
     vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -69,6 +81,10 @@ void ledTask(void *pvParameters) {
     // then turn off for half a second
     // vTaskDelay(...) hands control back over to the RTOS so other tasks can run
     digitalWrite(LED, HIGH);
+    vTaskDelay(1);
+    xSemaphoreTake(serialMutex, portMAX_DELAY);
+    Serial.println("THIS LED IS ON FIIIIIIIIRE");
+    xSemaphoreGive(serialMutex);
     vTaskDelay(500 / portTICK_PERIOD_MS);
     digitalWrite(LED, LOW);
     vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -91,6 +107,10 @@ void messageTask(void *pvParameters) {
     Oled.setCursor(0, 33);
     Oled.print("Hello, world!"); 
     Oled.refreshDisplay();
+    vTaskDelay(1);
+    xSemaphoreTake(serialMutex, portMAX_DELAY);
+    Serial.println("'Hello, world!' is your first program, but is 'Goodbye, cruel world!' your last?");
+    xSemaphoreGive(serialMutex);
     vTaskDelay(2000 / portTICK_PERIOD_MS);
     Oled.clear();
     vTaskDelay(2000 / portTICK_PERIOD_MS);
